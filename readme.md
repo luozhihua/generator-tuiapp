@@ -8,13 +8,16 @@
 
 * 自动补充CSS前缀，如：-webkit, -moz
 * 内置预览服务器（支持页面即时自动刷新）
-* 自动编译CoffeeScript和Sass
+* 自动编译CoffeeScript和Sass/Less
 * 自动检查Javascript语法，规范和错误
-* 使用grunt-wiredep自动封转应用所使用的bower组件（#需第三方依赖项）
+* 使用grunt-wiredep自动将应用所使用的bower组件注入到HTML页面（#第三方依赖项）
 * 自动对图片进行最佳优化（使用OptiPNG, pngquant, jpegtran和gifsicle包分别对png/jpg/jpeg/gif优化）
 * 集成Mocha单元测试框架（使用PhantomJS运行测试用例）
 * 提供支持Sass语法的Bootstrap （可选项）
 * 提供用于浏览器功能检测的Modernizr (可选项)
+* 提供Angular/Underscore/Async/Animate.css/等前端框架或类库
+* 支持自动部署到`Test2`和`Test3`等环境
+* 支持自动在Gitlab服务器创建仓库
 
 如果想要了解更多关于`generator-tuiapp`能为你做什么，可以查看其中使用的package.json: /app/templates/_package.json
 
@@ -22,18 +25,26 @@
 ## 快速开始
 
 - 安装NodeJS
+- 安装 Grunt-cli 和 Bower
+```
+
+```
 - 安装本生成器(打开命令行终端，输入此命令并按回车执行)：
+
 ```
     npm install -g git+https://git@gitlab.21tb.com/tui/generator-tuiapp.git
 ```
+
 - 为你的新应用创建一个文件夹, 并在此文件夹打开命令行终端，如：
+
   - Windows 7+: 在你的工作目录内创建文件夹‘app-demo’并打开，然后按住SHIFT键并右击，在右键菜单中选择“在此处打开命令行窗口”
   - Linux/Mac:
+
 ```
     cd ~/workspace
     mkdir app-demo && cd app-demo
 ```
-- 执行命令: `yo tuiapp`
+- 在命令行终端执行命令: `yo tuiapp`
 - 然后根据终端的提示, 输入或选择必要的配置数据, 等待安装完成即可
 
 至此，生成器已经为您在app-demo文件夹内生成了一个新的应用，接下来您只需要在此基础上继续完善即可, 在您开始动手为新应用写代码前，先为app-demo启动一个监视和预览服务器：
@@ -75,14 +86,9 @@ $ grunt wiredep
 *提示*: 项目添加到Git仓库后将会排除node_module和bower_components目录，所以当您第一次签出项目代码后，需要在您签出的源码目录内运行命令：`bower install && npm install` 来安装工具和环境。
 
 
-#### Grunt Serve Note
+#### Grunt Serve 说明
 
-Note: `grunt server` was used for previewing in earlier versions of the project, and has since been deprecated in favor of `grunt serve`.
-
-
-## Docs
-
-We have [recipes](docs/recipes) for integrating other popular technologies like Compass.
+注意: `grunt server` 已经废弃，不赞成继续使用，请使用此命令：`grunt serve`.
 
 
 ## Options
