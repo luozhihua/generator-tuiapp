@@ -1,0 +1,48 @@
+{
+  "name": "generator-tuiapp",
+  "version": "0.2.0",
+  "description": "时代光华 ELN 4.0 前端应用自动生成器",
+  "license": "BSD",
+  "repository": "git@gitlab.21tb.com:tui/generator-tuiapp.git",
+  "author": "罗志华 <mail@luozhihua.com>",
+  "main": "app/index.js",
+  "engines": {
+    "node": ">=0.10.0",
+    "npm": ">=1.2.10"
+  },
+  "scripts": {
+    "test": "mocha --reporter spec"
+  },
+  "files": [
+    "app"
+  ],
+  "keywords": [
+    "yeoman-generator",
+    "tuiapp",
+    "app",
+    "front-end",
+    "h5bp",
+    "modernizr",
+    "jquery",
+    "grunt"
+  ],
+  "dependencies": {
+    "lodash":"^2.4.1",
+    "ascii-tree": "^0.1.1",
+    "chalk": "^0.5.1",
+    "cheerio": "^0.17.0",
+    "findup-sync": "^0.1.3",
+    "fs-extra": "0.12.0",
+    "underscore.string": "^2.3.2",
+    "yeoman-generator": "~0.17.3",
+    "yosay": "~1.0.0"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "underscore": "^1.6.0"
+  },
+  "peerDependencies": {
+    "yo": ">=1.2.0",
+    "generator-mocha": ">=0.1.0"
+  }
+}

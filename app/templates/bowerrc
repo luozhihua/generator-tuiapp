@@ -1,0 +1,19 @@
+{
+  "directory": "libs",
+  "strict-ssl": false,
+  "interactive": true,
+  "registry": {
+    "search":[
+        "http://bower.21tb.com",
+        "https://bower.herokuapp.com"
+    ],
+    "_search": [
+        "https://bower.herokuapp.com"
+    ],
+    "register": "http://bower.21tb.com",
+    "publish": "http://bower.21tb.com"
+  },
+  "scripts": {
+    "postinstall": "grunt bower"
+  }
+}

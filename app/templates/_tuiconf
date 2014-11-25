@@ -1,0 +1,22 @@
+{
+    "deploy": {
+        "test2": {
+            "host" : "192.168.0.215",
+            "port" : 22,
+            "dir"  : "/web/eln4share/test2/tui/",
+            "sep"  : "/"
+        },
+        "test3": {
+            "host" : "192.168.0.215",
+            "port" : 22,
+            "dir"  : "/web/eln4share/test3/tui/",
+            "sep"  : "/"
+        },
+        "yufa": {
+            "host" : "123.103.18.69",
+            "port" : 22,
+            "dir"  : "/eln4/eln4share/tui/",
+            "sep"  : "/"
+        }
+    }
+}

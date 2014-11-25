@@ -1,0 +1,17 @@
+{
+    "DOC_DIR"       : "doc",
+    "TEST_DIR"      : "test",
+    "DIST_DIR"      : "dist",
+    "RELEASE_DIR"   : "release",
+    "TMP_DIR"       : ".tmp",
+    "SRC_DIR"       : "app",
+
+    "SCRIPTS_DIR"   : "scripts",
+    "STYLES_DIR"    : "styles",
+    "JS_DIR"        : "js",
+    "CSS_DIR"       : "css",
+    "HTML_DIR"      : "html",
+    "IMG_DIR"       : "img",
+    "DATA_DIR"      : "data",
+    "TEMPL_DIR"     : "views"
+}
