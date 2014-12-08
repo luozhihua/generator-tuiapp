@@ -27,12 +27,13 @@
 - 安装NodeJS
 - 安装 Grunt-cli 和 Bower
 ```
-
+    npm install -g grunt-cli
+    npm install -g bower
 ```
 - 安装本生成器(打开命令行终端，输入此命令并按回车执行)：
 
 ```
-    npm install -g git+https://git@gitlab.21tb.com/tui/generator-tuiapp.git
+    npm install -g git+https://git@gitlab.21tb.com/tui-devtools/generator-tuiapp.git
 ```
 
 - 为你的新应用创建一个文件夹, 并在此文件夹打开命令行终端，如：

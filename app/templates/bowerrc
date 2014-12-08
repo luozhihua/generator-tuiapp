@@ -1,5 +1,5 @@
 {
-  "directory": "libs",
+  "directory": "<%= appconf.BOWER_DIR %>",
   "strict-ssl": false,
   "interactive": true,
   "registry": {
@@ -13,7 +13,7 @@
     "register": "http://bower.21tb.com",
     "publish": "http://bower.21tb.com"
   },
-  "scripts": {
-    "postinstall": "grunt bower"
+  "scripts": { <% if (appconf.requirejs) { %>
+    "postinstall": "grunt bower" <% } %>
   }
 }

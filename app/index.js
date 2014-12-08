@@ -1,22 +1,49 @@
 'use strict';
 
+var os     = require('os');
+var rc     = require('rc');
 var fs     = require('fs-extra');
 var path   = require('path');
 var join   = require('path').join;
+var util   = require('util');
 var yeoman = require('yeoman-generator');
+var childp = require('child_process');
 var chalk  = require('chalk');
 var findup = require('findup-sync');
 var _      = require('lodash');
 var _s     = require('underscore.string');
 
-var bowerrc = fs.readJsonSync(path.resolve(__dirname, './templates/bowerrc'));
-var appconf;
-var appconfTemplate = path.resolve(__dirname, './templates/_appconf');
-var appconfFile = path.join(process.cwd(), '.appconf');
-var warningExists;
-var warningNotEmpty = fs.readdirSync(process.cwd()).length;
+var osinfo          = {
+  user: process.env.USER || process.env.USERNAME,
+  platform: os.platform(),
+  type: os.type(),
+  home: process.env.HOME || process.env.USERPROFILE
+};
 
-// 尝试读取历史配置
+var warningExists;
+//var bowerrc         = fs.readJsonSync(path.resolve(__dirname, './templates/bowerrc'));
+var appconfFile     = path.join(process.cwd(), '.appconf');
+var appconfTemplate = path.resolve(__dirname, './templates/_appconf');
+var warningNotEmpty = fs.readdirSync(process.cwd()).length;
+//var tuircPath       = findup('.tuirc');
+//var tuirc           = tuircPath ? fs.readJsonSync(tuircPath) : {user:{}};
+var tuirc           = rc('tui', {
+    'user': {
+        'username': osinfo.user,
+        'email': 'mail@luozhihua.com',
+        'blog': 'http://www.luozhihua.com'
+    },
+    'editor': 'sublimeText',
+    'gitlabServer': 'https://gitlab.21tb.com',
+    'gitlabPrivateToken': 'xxx'
+});
+
+var now = new Date();
+var timestamp = now.toLocaleDateString() +' '+ now.toLocaleTimeString();
+var gitlab;
+
+// 尝试读取配置文件
+var appconf;
 if (fs.existsSync(appconfFile)) {
   warningExists = true;
   appconf = fs.readJsonSync(appconfFile);
@@ -24,9 +51,11 @@ if (fs.existsSync(appconfFile)) {
   appconf = fs.readJsonSync(appconfTemplate);
 }
 
+// 系统信息
+appconf.createTime = timestamp;
 
 // 路径配置
-appconf.BOWER_DIR     = bowerrc.directory;
+appconf.BOWER_DIR     = appconf.BOWER_DIR; // bower_rc.directory;
 
 appconf.JS_SRC_DIR    = appconf.SRC_DIR + '/' + appconf.SCRIPTS_DIR;
 appconf.CSS_SRC_DIR   = appconf.SRC_DIR + '/' + appconf.STYLES_DIR;
@@ -43,9 +72,6 @@ appconf.HTML_DIST_DIR = appconf.DIST_DIR + '/' + appconf.HTML_DIR;
 appconf.TEMPL_DIST_DIR = appconf.DIST_DIR + '/' + appconf.TEMPL_DIR;
 appconf.DATA_DIST_DIR = appconf.DIST_DIR + '/' + appconf.DATA_DIR;
 
-
-var tuircPath = findup('.tuirc');
-var tuirc = tuircPath ? fs.readJsonSync(tuircPath) : {user:{}};
 
 function tuiSayHello() {
     return '\n' +
@@ -76,7 +102,7 @@ function warning(text) {
     xxx = xxx.map(function(a) {
       var str;
       var enchars = a.match(/[^，。？《》【】、～（）￥×！：“‘\u4e00-\u9fa5]/g);
-      var ennum = enchars?enchars.length:0;
+      var ennum = enchars ? enchars.length : 0;
 
       if (a.length < num) {
         str = _s.pad(a, ((num-a.length+ennum))*2 + (a.length-ennum), '  ', 'right');
@@ -122,43 +148,87 @@ module.exports = yeoman.generators.Base.extend({
     }
 
     appconf.appname = this.appname = this.appname.replace(/(_| )/g, '-');
+    appconf.createTime = timestamp;
 
-    this.appconf = appconf;
-    this.author = tuirc.user;
-    this.pkg    = require('../package.json');
+    this.platform = osinfo.platform;
+    this.ostype   = osinfo.ostype;
+    this.appconf  = appconf;
+    this.author   = tuirc.user;
+    this.pkg      = require('../package.json');
 
+    /**
+     * @param {String} appname 应用名称(开发项目名称)
+     */
     this.option('appname', {
-      desc: '设置应用名称',
+      desc: '设置项目名称(仅支持字母或数字，如：els、oms等):',
       type: String,
       defaults: appconf.appname || 'new_tuiapp'
     });
 
-    // for (var k in appconf) {
-    //   if (k.match(/_DIR$/)) {
-    //     this.option(k.toLowerCase().replace(/_/g, '-'), {
-    //       desc: k.toLowerCase().replace(/_/g, ' '),
-    //       type: String,
-    //       defaults: appconf[k]
-    //     });
-    //   }
-    // }
+    /**
+     * @param {String} apptitle 应用标题(可能会显示在界面上)
+     */
+    this.option('apptitle', {
+      desc: '设置应用标题(如课程中心、云学习等):',
+      type: String,
+      defaults: appconf.apptitle || '未命名应用'
+    });
+
+    /**
+     * @param {String} description 描述您的新应用
+     */
+    this.option('description', {
+      desc: '您如何描述您的新应用，后面括号内是默认值：',
+      type: String,
+      defaults: appconf.description || '这是一个由“TUI应用生成器”自动生成的应用，集成了常用组件、类库和框架！'
+    });
+
+    /**
+     * 指定集成测试框架
+     * @param {String}
+     */
+    this.option('karma', {
+      desc: '使用Karma集成测试框架',
+      type: Boolean,
+      defaults: appconf.karma || true
+    });
+    appconf.karma = this.options.karma;
 
     // 设置单元测试框架
     this.option('test-framework', {
-      desc: '使用的测试框架',
+      desc: '使用的单元测试框架',
       type: String,
       defaults: appconf.testframework || 'mocha'
     });
     appconf.testframework = this.options['test-framework'];
 
     /**
-     * @param {String} 使用默认配置,不要询问任何问题
+     * @param {String} noask 使用默认配置,不要询问任何问题
      */
     this.option('noask', {
       desc: '使用默认配置,不要询问',
       type: Boolean,
       defaults: false
     });
+
+    /**
+     * @param {String} gitlab 是否创建Gitlab仓库
+     */
+    this.option('gitlab', {
+      desc: '是否在Gitlab创建仓库',
+      type: Boolean,
+      defaults: true
+    });
+
+    /**
+     * @param {String} nodewebkit 是否使用node-webkit打包成桌面应用
+     */
+    this.option('nodewebkit', {
+      desc: '是否使用node-webkit打包成桌面应用',
+      type: Boolean,
+      defaults: appconf.nodewebkit || false
+    });
+    appconf.nodewebkit = this.options.nodewebkit;
 
     /**
      * 配置脚本语言
@@ -263,6 +333,7 @@ module.exports = yeoman.generators.Base.extend({
       defaults: appconf.nockjs || false
     });
     appconf.mockjs = this.options.mockjs;
+    if (appconf.mockjs) {this._saveLibs('mockjs');}
 
     this.option('tuicore', {
       desc: 'TUI 核心框架',
@@ -270,6 +341,7 @@ module.exports = yeoman.generators.Base.extend({
       defaults: appconf.tuicore || true
     });
     appconf.tuicore = this.options.tuicore;
+    if (appconf.tuicore) {this._saveLibs('tuicore');}
 
     //
     this.option('tuiplugins', {
@@ -278,6 +350,7 @@ module.exports = yeoman.generators.Base.extend({
       defaults: appconf.tuiplugins || true
     });
     appconf.tuiplugins = this.options.tuiplugins;
+    if (appconf.tuiplugins) {this._saveLibs('tuiplugins');}
 
     // Bootstrap
     this.option('bootstrap', {
@@ -286,6 +359,7 @@ module.exports = yeoman.generators.Base.extend({
       defaults: appconf.bootstrap || false
     });
     appconf.bootstrap = this.options.bootstrap;
+    if (appconf.bootstrap) {this._saveLibs('bootstrap');}
 
     // AngularJS
     this.option('angularjs', {
@@ -294,6 +368,7 @@ module.exports = yeoman.generators.Base.extend({
       defaults: appconf.angularjs || false
     });
     appconf.angularjs = this.options.angularjs;
+    if (appconf.angularjs) {this._saveLibs('angularjs');}
 
     var ngmodules = [
       'angular-route',
@@ -316,6 +391,7 @@ module.exports = yeoman.generators.Base.extend({
         defaults: appconf[ngm] || false
       });
       appconf[ngm] = this.options[ngm];
+      if (appconf[ngm]) {this._saveAngularComponents(ngm);}
     }.bind(this));
 
     // requirejs
@@ -325,6 +401,7 @@ module.exports = yeoman.generators.Base.extend({
       defaults: appconf.requirejs || false
     });
     appconf.requirejs = this.options.requirejs;
+    if (appconf.requirejs) {this._saveLibs('requirejs');}
 
     // asyncjs
     this.option('async', {
@@ -333,6 +410,7 @@ module.exports = yeoman.generators.Base.extend({
       defaults: appconf.async || false
     });
     appconf.async = this.options.async;
+    if (appconf.async) {this._saveLibs('async');}
 
     // underscore
     this.option('underscore', {
@@ -341,6 +419,7 @@ module.exports = yeoman.generators.Base.extend({
       defaults: appconf.underscore || false
     });
     appconf.underscore = this.options.underscore;
+    if (appconf.underscore) {this._saveLibs('underscore');}
 
     // backbone
     this.option('backbone', {
@@ -349,6 +428,7 @@ module.exports = yeoman.generators.Base.extend({
       defaults: appconf.backbone || false
     });
     appconf.backbone = this.options.backbone;
+    if (appconf.backbone) {this._saveLibs('backbone');}
 
     // animatecss
     this.option('animatecss', {
@@ -357,6 +437,7 @@ module.exports = yeoman.generators.Base.extend({
       defaults: appconf.animatecss || false
     });
     appconf.animatecss = this.options.animatecss;
+    if (appconf.animatecss) {this._saveLibs('animatecss');}
 
     // fontawesome
     this.option('fontawesome', {
@@ -372,6 +453,7 @@ module.exports = yeoman.generators.Base.extend({
     });
     appconf.fontawesome = this.options.fontawesome;
     appconf.fa = this.options.fa;
+    if (appconf.fontawesome) {this._saveLibs('fontawesome');}
 
     // modernizr
     this.option('modernizr', {
@@ -380,8 +462,32 @@ module.exports = yeoman.generators.Base.extend({
       defaults: appconf.modernizr || false
     });
     appconf.modernizr = this.options.modernizr;
+    if (appconf.modernizr) {this._saveLibs('modernizr');}
   },
 
+  // 保存用户指定的前端类库和框架到一个列表
+  _saveLibs: function(libname) {
+    if (libname) {
+      appconf.libs = appconf.libs || [];
+
+      if (appconf.libs.indexOf(libname) === -1) {
+        appconf.libs.push(libname);
+      }
+    }
+  },
+
+  // 保存Angular组件到一个列表
+  _saveAngularComponents: function(libname) {
+    if (libname) {
+      appconf.ngcomponents = appconf.ngcomponents || [];
+
+      if (appconf.ngcomponents.indexOf(libname) === -1) {
+        appconf.ngcomponents.push(libname);
+      }
+    }
+  },
+
+  // 用户交互界面
   askFor: function () {
     var done = this.async();
 
@@ -399,29 +505,69 @@ module.exports = yeoman.generators.Base.extend({
     }
 
     var continueText = '忽略警告';
+    var continueCount = 3;
     var prompts = [{
       when: function() { return warningExists; },
       name: 'warning',
       type: 'string',
       message: '有未处理的警告信息，请输入“'+ continueText +'”继续: ',
-      default: '输入错误将会自动退出', // 'newapp'
+      default: '输错'+ continueCount +'次将会自动退出', // 'newapp'
       validate: function(answer) {
         if (answer === continueText) {
           return true;
         } else {
-          process.exit();
+          continueCount -= 1;
+          if (continueCount > 0) {
+            return false;
+          } else {
+            process.exit();
+          }
         }
       },
       required: true
     }, {
       name: 'appname',
       type: 'string',
-      message: '请输入新应用的名称 \n(仅支持字母和数字，首字符不能为数字, 如：els、os...): ',
+      message: '请输入新应用名称 \n(仅支持字母和数字，首字符不能为数字, 如：els、os...): ',
       default: appconf.appname || this.appname, // 'newapp'
       validate: function(answer) {
         return answer.match(/[\-_ \W]/g) ? false : true;
       },
       required: true
+    }, {
+      name: 'apptitle',
+      type: 'string',
+      message: '请输入应用标题，用于显示在标题栏或界面上: ',
+      default: appconf.apptitle || this.apptitle || '未命名应用'
+    }, {
+      name: 'description',
+      type: 'string',
+      message: '请输入应用描述：',
+      default: appconf.description || this.description
+    }, {
+      type: 'list',
+      name: 'apptype',
+      message: '选择应用类型',
+      default: function() {
+        return  appconf.nodewebkit ? 'nodewebkit' : 'webapp';
+      },
+      choices: [{
+        name: '桌面应用',
+        value: 'nodewebkit'
+      }, {
+        name: 'Web应用',
+        value: 'webapp',
+        checked: true
+      }]
+    }, {
+      when: function () {
+        return true;
+      },
+      type: 'confirm',
+      name: 'karma',
+      value: 'karma',
+      message: '是否使用Karma集成测试框架',
+      default: appconf.karma
     }, {
       type: 'list',
       name: 'scriptLangs',
@@ -506,15 +652,15 @@ module.exports = yeoman.generators.Base.extend({
         checked: this.options.underscore
       },{
         name: 'Font-Awesome',
-        value: 'fa',
+        value: 'fontawesome',
         checked: this.options.fa
       },{
         name: 'Animate.css',
-        value: 'animateCss',
+        value: 'animatecss',
         checked: this.options.animatecss
       },{
         name: 'MockJS (模拟数据生成器)',
-        value: 'mockJS',
+        value: 'mockjs',
         checked: this.options.mockjs
       }]
     }, {
@@ -549,19 +695,19 @@ module.exports = yeoman.generators.Base.extend({
       value: 'libsass',
       message: '是否使用node-sass解析库来解析SASS? 了解更多: ' +
         chalk.green('https://github.com/andrew/node-sass#node-sass'),
-      default: false
+      default: true
     }];
 
     this.prompt(prompts, function (answers) {
 
-      var scriptLangs = answers.scriptLangs;
-      var styleLangs = answers.styleLangs;
-      var libs = answers.libs;
-      var ngcomponents = answers.ngcomponents;
-      var appname = answers.appname.replace(/[\s\_]/g, '-');
-
-      appconf.ngcomponents = ngcomponents;
-      appconf.libs = libs;
+      var libs         = answers.libs;
+      var apptype      = answers.apptype;
+      var scriptLangs  = answers.scriptLangs;
+      var styleLangs   = answers.styleLangs;
+      var ngcomponents = answers.ngcomponents || [];
+      var appname      = answers.appname.replace(/[\s\_]/g, '-');
+      var apptitle     = answers.apptitle;
+      var description  = answers.description;
 
       function useLib(lib) {
         return libs && libs.indexOf(lib) !== -1;
@@ -572,7 +718,19 @@ module.exports = yeoman.generators.Base.extend({
                (styleLangs && styleLangs.indexOf(lang) !== -1);
       }
 
-      appconf.appname   = appname || this.appname;
+      appconf.appname      = appname || this.appname;
+      appconf.apptitle     = apptitle || this.apptitle;
+      appconf.description  = description || this.description;
+      appconf.nodewebkit   = apptype === 'nodewebkit';
+      appconf.webapp       = !appconf.nodewebkit;
+      appconf.karma        = answers.karma;
+
+      this.log('2222222222222222222222222');
+      this.log(answers.karma);
+      this.log('vvvvvvvvvvvvvvvvvvvvvvvvvv');
+
+      appconf.libs         = libs;
+      appconf.ngcomponents = ngcomponents;
 
       // 使用的样式预处理器
       appconf.sass      = useLang('sass');
@@ -692,7 +850,7 @@ module.exports = yeoman.generators.Base.extend({
       bower.devDependencies.mockjs = '~0.1.5';
     }
 
-    this.copy('bowerrc', '.bowerrc');
+    this.template('bowerrc', '.bowerrc');
     this.write('bower.json', JSON.stringify(bower, null, 2));
   },
 
@@ -746,14 +904,15 @@ module.exports = yeoman.generators.Base.extend({
     var list = [jsPath + '/'+ appconf.appname +'.js'];
     this.indexFile = this.appendFiles({
       html: this.indexFile,
-      fileType: 'js',
-      optimizedPath: appconf.JS_DIR + '/'+ appconf.appname +'.js',
+      fileType: 'js',//+ (appconf.coffeescript?':coffee':''),
+      optimizedPath: appconf.JS_DIR + '/'+ appconf.appname +'-min.js',
       sourceFileList: list,
-      searchPath: [appconf.javascript ? appconf.SCRIPTS_DIR : appconf.TEM_DIR]
+      searchPath: ['.', appconf.javascript ? appconf.SRC_DIR : appconf.TMP_DIR]
     });
   },
 
   app: function () {
+
     this.mkdir(appconf.RELEASE_DIR);  // ./release
     this.mkdir(appconf.DIST_DIR);     // ./dist
     this.mkdir(appconf.TEST_DIR);     // ./test
@@ -765,7 +924,7 @@ module.exports = yeoman.generators.Base.extend({
     this.mkdir(appconf.CSS_SRC_DIR);  // ./app/css
     this.mkdir(appconf.IMG_SRC_DIR);  // ./app/img
     this.mkdir(appconf.HTML_SRC_DIR); // ./app/html
-    this.mkdir(appconf.TEMPL_SRC_DIR); // ./app/templ
+    this.mkdir(appconf.TEMPL_SRC_DIR); // ./app/views
     this.mkdir(appconf.DATA_SRC_DIR); // ./app/data
     this.write(appconf.SRC_DIR + '/index.html', this.indexFile);
 
@@ -777,11 +936,20 @@ module.exports = yeoman.generators.Base.extend({
         coffeeFile,
         'console.log "嗨！我在文件 `'+ coffeeFile +'` 里面，记得来找我哦～ ;-)"'
       );
-    }
-    else {
+    } else {
       //var jsFile = appconf.JS_SRC_DIR +'/'+ appconf.appname +'.js';
       //this.write(jsFile, 'console.log(\'嗨！我在文件 `'+ jsFile +'` 里面，记得来找我哦～ ;-) \');');
       this.template('main.js', appconf.JS_SRC_DIR +'/'+ appconf.appname + '.js');
+    }
+
+    // 复制node-webkit配置文件
+    if (appconf.nodewebkit) {
+      this.template('_nw_package.json', appconf.SRC_DIR + '/package.json');
+    }
+
+    // 复制Karma集成测试框架的配置文件
+    if (appconf.karma) {
+      this.template('karma.conf.js', appconf.TEST_DIR + '/karma.conf.js');
     }
 
     this.template('_README.md', 'README.md');
@@ -793,7 +961,23 @@ module.exports = yeoman.generators.Base.extend({
 
   install: function () {
 
+    //this._gitlab();
+
+
+    // 如果当前应用位于tui-workspace目录
+    // 则使用`tui-workspace`目录的共享组件和开发包
+    // 包括 bower 和 npm 安装的 package
+    // 避免每创建一个新应用都需要从网上下载依赖包
+    var tuiroot = findup('.tuiroot');
+    if (tuiroot) {
+      this.useSharedFolder(tuiroot, 'node_modules');
+      this.useSharedFolder(tuiroot, appconf.BOWER_DIR, ['bower_components', 'libs', 'bower']);
+    }
+
+    this.config.save();
+
     this.on('end', function () {
+
       this.invoke(this.options['test-framework'], {
         options: {
           'skip-message': this.options['skip-install-message'],
@@ -803,13 +987,77 @@ module.exports = yeoman.generators.Base.extend({
       });
 
       if (!this.options['skip-install']) {
+
+        // 使用NPM安装依赖的开发工具包
         this.installDependencies({
+          bower: false,
+          npm: true,
+          skipMessage: this.options['skip-install-message'],
+          skipInstall: this.options['skip-install']
+        });
+
+        // 使用Bower安装项目所依赖的组件和第三方框架、类库依赖包
+        this.installDependencies({
+          bower: true,
+          npm: false,
           skipMessage: this.options['skip-install-message'],
           skipInstall: this.options['skip-install']
         });
       }
 
-      this.config.save();
     });
+  },
+
+  /**
+   * 使用共享的开发工具和第三方组件包, 以减少从网络安装的等待时间
+   * @param  {String} tuiroot TUI 工作目录
+   * @param  {String} folder  项目内需要使用的目录名称
+   * @return {String}         共享目录的名称, (目标位置仅限于tuiroot指定的目录下)
+   */
+  useSharedFolder: function(tuiroot, folder, srcPaths) {
+
+    this.log('sharing');
+    if (tuiroot && folder && !fs.existsSync(folder)) {
+      var relativePath = path.relative(path.dirname(tuiroot), '.');
+      var deep = relativePath.split(path.sep).length;
+      var parentPath = _s.repeat('../', deep);
+      var srcFolder;
+
+      this.log(deep+', '+parentPath);
+
+      if (srcPaths && srcPaths.constructor === Array) {
+        srcPaths.forEach(function(src) {
+
+          if (fs.existsSync(parentPath + src)) {
+            srcFolder = src;
+            return false;
+          }
+        });
+      }
+
+      srcFolder = srcFolder || folder;
+      var linkTo = parentPath + srcFolder;
+
+      if (!fs.existsSync(linkTo)) {
+        fs.mkdirSync(linkTo);
+      }
+      fs.symlinkSync(linkTo, folder, 'dir');
+    }
+  },
+
+  _gitInit: function() {
+    childp.swape('git init');
+  },
+
+  _gitlab: function() {
+      var context = this;
+      gitlab.groups.all(function(result) {
+        context.log(result);
+      });
+
+      gitlab.projects.all(function(result) {
+        context.log(result);
+      });
+
   }
 });

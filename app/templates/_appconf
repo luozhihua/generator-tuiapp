@@ -1,10 +1,12 @@
 {
+    "BOWER_DIR"     : "libs",
     "DOC_DIR"       : "doc",
     "TEST_DIR"      : "test",
     "DIST_DIR"      : "dist",
     "RELEASE_DIR"   : "release",
     "TMP_DIR"       : ".tmp",
     "SRC_DIR"       : "app",
+    "BUILD_DIR"     : "build",
 
     "SCRIPTS_DIR"   : "scripts",
     "STYLES_DIR"    : "styles",

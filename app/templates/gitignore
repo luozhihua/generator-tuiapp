@@ -3,6 +3,8 @@
 ################
 node_modules
 dist
+build
+cache
 .tmp<% if ( appconf.sass) { %>
 .sass-cache<% } %><%=
  appconf.BOWER_DIR %>

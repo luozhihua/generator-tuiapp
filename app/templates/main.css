@@ -94,6 +94,26 @@ body {
   overflow-x: hidden;
 }
 
+.marketing .features,
+.marketing .features ul {
+  list-style: none;
+  padding-left: 0px;
+}
+.marketing .features ul {
+  padding-left: 2em;
+}
+
+.features .fa-square{
+
+  color: #81FFC4;
+}
+.features .fa-check-square {
+  color: #2CE09D;
+}
+.features .fa-warning {
+  color: #FFCC10;
+}
+
 .marketing p + h3 {
   margin-top: 28px;
 }

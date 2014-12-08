@@ -44,14 +44,11 @@
         init: function() {
             var hiMsg = '嗨！我在文件 `<%=  appconf.JS_SRC_DIR%>/<%=  appconf.appname%>.js` 里面，记得来找我哦～ ;-)';
 
+            <% if (!appconf.nodewebkit) { %>
             require(['underscore'], function(_) {
-                alert(_.flatten([1,[2,[3,[4]]]]));
+                console.log('require("underscore"): \n _.flatten([1,[2,[3,[4]]]]); =>> '+ _.flatten([1,[2,[3,[4]]]]).join(','));
             });
-
-            require(['module-1'], function(m) {
-                m.log();
-            });
-
+            <% } %>
 
             this.sayHi(hiMsg);
             this.jumbotronTitleAnimation().jumbotronDescriptionAnimation();

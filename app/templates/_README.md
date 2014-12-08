@@ -1,4 +1,4 @@
-# <%=  appconf.appname %>
+# <%=  appconf.apptitle %> (<%= appconf.appname%>)
 
 
 ### 特性
@@ -16,7 +16,9 @@
   if (appconf.libs[i] === 'angularjs' && appconf.ngcomponents) {
     for (var k=0,leng=appconf.ngcomponents.length; k<leng; k++) { %>
 -- 已安装Angular模块: `<%= appconf.ngcomponents[k] %>`;<% }} %>
-<% }} %>
+<% }} %> <% if (appconf.nodewebkit) { %>
+- 支持使用`Node-webkit`构建基于HTML5+CSS3的跨平台**桌面应用**; <% } %> <% if (!appconf.phonegap) { %>
+- 稍后将会支持使用Apache `Cordova`构建基于HTML5+CSS3的跨终端移动应用; <% } %>
 
 ### 目录结构
 ```

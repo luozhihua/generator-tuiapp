@@ -18,8 +18,8 @@
 
 var findup = require('findup-sync');
 var fs     = require('fs-extra');
+var os     = require('os');
 //var path   = require('path');
-
 
 /**
  * 让预览服务器支持REST接口的 POST / PUT / DELETE 方法
@@ -72,7 +72,7 @@ module.exports = function (grunt) {
   var appconf = fs.readJsonSync('.appconf');
 
   var tuircPath = findup('.tuirc');
-  var tuirc = tuircPath ? fs.readJsonSync(tuircPath, {throws:false}) : {};
+  var tuirc = tuircPath ? fs.readJsonSync(tuircPath) : {user:{}};
   var deploy = readDeployConf();
 
   var config = {
@@ -83,6 +83,7 @@ module.exports = function (grunt) {
     doc      : appconf.DOC_DIR,
     dist     : appconf.DIST_DIR,
     test     : appconf.TEST_DIR,
+    build    : appconf.BUILD_DIR,
     tmp      : appconf.TMP_DIR,
 
     src      : appconf.SRC_DIR,
@@ -108,8 +109,7 @@ module.exports = function (grunt) {
     htmlDist : appconf.HTML_DIST_DIR
   };
 
-  var date       = new Date(),
-      TIME_STAMP = typeof date.toLocaleString === 'function' ? date.toLocaleString() : date.toString();
+  var date       = new Date();
 
   // 为所有任务定义配置项
   grunt.initConfig({
@@ -226,6 +226,14 @@ module.exports = function (grunt) {
 
     // 清空构建目录和缓存目录
     clean: {
+      nw: {
+        files: [{
+          dot: true,
+          src: [
+            '<%%= config.build %>/*'
+          ]
+        }]
+      },
       dist: {
         files: [{
           dot: true,
@@ -270,10 +278,78 @@ module.exports = function (grunt) {
           specs: '<%%= config.test %>/spec/{,*/}*.js'
         }
       }
+    },<% } %><% if (appconf.karma) { %>
+
+    // Test settings
+    karma: {
+      options: {
+        configFile: 'test/karma.conf.js',
+        runnerPort: 9909,
+        customLaunchers: {
+          IE10: {
+            base: 'IE',
+            'x-ua-compatible': 'IE=EmulateIE10'
+          },
+          IE9: {
+            base: 'IE',
+            'x-ua-compatible': 'IE=EmulateIE9'
+          },
+          IE8: {
+            base: 'IE',
+            'x-ua-compatible': 'IE=EmulateIE8'
+          },
+          IE7: {
+            base: 'IE',
+            'x-ua-compatible': 'IE=EmulateIE7'
+          }
+        }
+      },
+      unit: {
+        autoWatch: true,
+        singleRun: false,
+        browsers: ['PhantomJS']
+      },
+      chrome: {
+        autoWatch: true,
+        singleRun: false,
+        browsers: ['chrome']
+      },
+      ie7: {
+        autoWatch: true,
+        singleRun: false,
+        browsers: ['ie7']
+      },
+      ie8: {
+        autoWatch: true,
+        singleRun: false,
+        browsers: ['ie8']
+      },
+      ie9: {
+        autoWatch: true,
+        singleRun: false,
+        browsers: ['ie9']
+      },
+      ie10: {
+        autoWatch: true,
+        singleRun: false,
+        browsers: ['ie10']
+      },
+      continuous: {
+        singleRun: true,
+        browsers: ['Chrome', 'Firefox', 'safari', 'IE', 'IE7']
+      },
+      dev: {
+        background: true,
+        reporters: 'dots'
+      }
     },<% } %><% if (appconf.coffeescript || options.coffee) { %>
 
     // 编译CoffeeScript为原生JavaScript
     coffee: {
+      options: {
+        sourceMap: true/*,
+        sourceMapDir: ''*/
+      },
       dist: {
         files: [{
           expand: true,
@@ -388,6 +464,22 @@ module.exports = function (grunt) {
       sass: {
         src: ['<%%= config.cssSrc %>/{,*/}*.{scss,sass}'],
         ignorePath: /(\.\.\/){1,2}<%%= config.bower %>\//
+      }<% } %><% if (appconf.karma) { %>,
+      jstest: {
+        cwd: './',
+        fileTypes: {
+          js: {
+            block: /(([ \t]*)\/\/\s*bower:*(\S*))(\n|\r|.)*?(\/\/\s*endbower)/gi,
+            detect: {
+              js: /'(.*\.js)'/gi
+            },
+            replace: {
+              js: '\'{{filePath}}\','
+            }
+          }
+        },
+        src: ['<%%= config.test %>/karma.conf.js'],
+        exclude: ['<%= (wiredepExcludes.join("', '"))%>']
       }<% } %>
     },
 
@@ -474,12 +566,31 @@ module.exports = function (grunt) {
           dest: '<%%= config.dist %>'
         }]
       }
-    },
+    },<% if (appconf.angularjs) { %>
+
+
+    // ng-annotate tries to make the code safe for minification automatically
+    // by using the Angular long form for dependency injection.
+    ngAnnotate: {
+      dist: {
+        files: [{
+          expand: true,
+          cwd: '.tmp/concat/scripts',
+          src: ['*.js', '!oldieshim.js'],
+          dest: '.tmp/concat/scripts'
+        }]
+      }
+    },<% } %>
 
     // By default, your `index.html`'s <!-- Usemin block --> will take care
     // of minification. These next options are pre-configured if you do not
     // wish to use the Usemin blocks.
     cssmin: {
+      options: {
+        sourceMap: true,
+        sourceMapName: function(filename) { return filename.replace(/\.css$/, '.map'); },
+        banner: '<%%= uglify.options.banner %>'
+      },
       dist: {
         files: {
           '<%%= config.cssDist %>/<%%=config.appname%>.css': [
@@ -494,26 +605,38 @@ module.exports = function (grunt) {
         //report: 'gzip',
         mangle   : true, // Specify mangle: false to prevent changes to your variable and function names.
         sourceMap: true,
-        sourceMapName: function(dest) { return dest + '.map' },
+        sourceMapName: function(dest) { return (dest.replace('-min.js', '.map')); },
         beautify : false,
         banner   : '/** \n' +
                 ' * -------------------------------------------------------------\n' +
                 ' * Copyright (c) 2014 时代光华, All rights reserved. \n' +
                 ' * http://www.21tb.com/ \n' +
                 ' *  \n' +
+                ' * @app: <%%= pkg.name %> \n' +
                 ' * @version: <%%= pkg.version%> \n' +
-                ' * @author: <%%= pkg.author%> \n' +
                 ' * @description: <%%= pkg.description%> \n' +
+                ' * @createTime: <%= appconf.createTime%> \n' +
                 ' * @repository: https://gitlab.21tb.com/tui/<%%= pkg.name%>.git\n' +
+                ' * @doc: https://gitlab.21tb.com/tui/<%%= pkg.name%>.git\n' +
+                ' * @author: <%%= pkg.author%> \n' +
                 ' \n' +
                 ' \n' +
-                ' * - LAST BUILD:' +
-                ' * @user: <%%= author.name||"-"%> \n' +
+                ' * - LAST BUILD:\n\n' +
+                ' * @buildByUser: <%%= author.username || author.name || "-" %> \n' +
                 ' * @email: <%%= author.email||"-"%> \n' +
-                ' * @time: '+ TIME_STAMP + ' \n' +
+                ' * @buildTime: <%%= grunt.template.today("yyyy-mm-dd hh:MM:ss") %> \n' +
+                ' * @buildEnv: '+ os.type() +'/'+ os.platform() +' \n' +
                 ' * ------------------------------------------------------------- \n' +
                 ' */ \n\n'
-      }/*,
+      },
+
+      coffee: {
+        options: {
+          sourceMapIncludeSources: true,
+          sourceMapIn: '<%%= config.tmp %>/js/<%%=config.appname%>.js.map',
+        }
+      }
+      /*,
       app: {
         files: {
           '<%%= config.jsDist %>/<%= config.appname%>-min.js': [
@@ -531,14 +654,25 @@ module.exports = function (grunt) {
     copy: {
       dist: {
         files: [{
+          src: '<%%= config.tmp %>/concat/js/libs-config-min.js',
+          dest: '<%%= config.jsDist %>/libs-config.js'
+        }, {
+          src: '<%%= config.tmp %>/concat/js/libs-min.js',
+          dest: '<%%= config.jsDist %>/libs.js'
+        }, {
+          src: '<%%= config.tmp %>/concat/js/<%%= config.appname %>-min.js',
+          dest: '<%%= config.jsDist %>/<%%= config.appname %>.js'
+        }, {
           expand: true,
           dot: true,
           cwd: '<%%= config.src %>',
           dest: '<%%= config.dist %>',
           src: [
             '*.{ico,png,txt}',
-            '<%%= config.img %>/{,*/}*.webp',
-            //'<%%= config.templ %>/{,*/}*.*',
+            '<%%= config.img %>/**/*',
+            'package.json',
+            '<%%= config.templ %>/{,*/}*.*',<% if (appconf.nodewebkit) { %>
+            'node_modules/**/*.*',<% } %>
             //'<%%= config.html %>/{,*/}*.html',
             '{,*/}*.html',
             '<%%= config.css %>/fonts/{,*/}*.*'
@@ -583,7 +717,38 @@ module.exports = function (grunt) {
         dest: '.tmp/<%%= config.css %>',
         src: '{,*/}*.css'
       }
-    },<% if (appconf.modernizr) { %>
+    },
+
+    replace: {
+      sourceMap: {
+        options: {
+          patterns: [
+
+            {
+              match: /(\.\.\/.+\/)([\w\d\-_]+)(\-min\.js)/,
+              replacement: '$2.js'
+            }/*,
+            //"../../.tmp/concat/js/libs-config-min.js"
+            {
+              match: '../../.tmp/concat/js/libs-min.js',
+              replacement: 'lib.js'
+            }, {
+              match: '../../.tmp/concat/js/libs-config-min.js',
+              replacement: 'libs-config.js'
+            }, {
+              match: '../../.tmp/concat/js/<%%= config.appname %>-min.js',
+              replacement: '<%%= config.appname %>.js'
+            }, {
+              match: '../../script/<%%=config.appname %>.coffee',
+              replacement: 'src/<%%=config.appname %>.coffee'
+            }*/
+          ]
+        },
+        files: [
+          {expand: true, flatten: true, src: ['<%%=config.jsDist%>/*.map'], dest: '<%%=config.jsDist%>'}
+        ]
+      }
+    }, <% if (appconf.modernizr) { %>
 
     // 生成一个自定义的Modernizr版本, 此版本中仅包含在您的应用程序中所引用的检测方法
     modernizr: {
@@ -808,7 +973,25 @@ module.exports = function (grunt) {
                 message: '应用<%= config.appname %>成功部署到 yufa。.'
             }
         }
-    }
+    }<% if (appconf.nodewebkit) { %>,
+
+    nodewebkit: {
+      options: {
+        version   : pkg.nwDependencies,
+        'force_download' : false,
+        'build_dir'   : '<%%=config.build%>',
+        //credits     : './<%=config.app%>/credits.html',
+        //platforms : ['win','osx', 'linux64', 'linux32'],
+        mac         : true,
+        linux32     : false,
+        win         : true,
+        linux64     : true,
+        winExeUrl   : ''/*,
+        winIco: './icons/favicon.ico',
+        macIcns: './icons/favicon.icns'*/
+      },
+      app: './<%%=config.dist%>/**/*'
+    }<% } %>
 
   });
 
@@ -891,15 +1074,33 @@ module.exports = function (grunt) {
     'useminPrepare',
     'concurrent:dist',
     'autoprefixer',
-    'concat',
+    'concat',<% if (appconf.angularjs) { %>
+    'ngAnnotate',<% } %>
     'cssmin',
     'uglify',
-    'copy:dist',<% if (appconf.modernizr) { %>
+    'copy:dist',
+    'replace',<% if (appconf.modernizr___) { %>
     'modernizr',<% } %>
     //'rev',
     'usemin',
-    'htmlmin'
+    'htmlmin',
+    'replace'
   ]);
+
+  <% if (appconf.nodewebkit) { %>
+  grunt.registerTask('nw', function (target) {
+    grunt.log.ok('"grunt nodewebkit" 的别名');
+    grunt.task.run([target ? ('nodewebkit:' + target) : 'nodewebkit']);
+  });
+
+  grunt.registerTask('nwbuild', function (target) {
+    grunt.log.ok('打包桌面应用');
+    var nwTask = (target ? ('nodewebkit:' + target) : 'nodewebkit');
+    grunt.task.run(['clean:nw', 'build', nwTask]);
+  });
+
+  grunt.registerTask('buildnw', ['nwbuild']);
+  <% } %>
 
   grunt.registerTask('s', function (target) {
     grunt.log.ok('"grunt serve" 的别名');

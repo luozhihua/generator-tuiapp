@@ -2,28 +2,30 @@
 <html class="no-js">
   <head>
     <meta charset="utf-8">
-    <title><%=  appconf.appname %> - ELN 4.0 APP</title>
+    <title><%=  appconf.apptitle || appconf.title %> (<%= appname%>)</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="description" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="shortcut icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon.png" />
-    <link rel="apple-touch-icon" sizes="114x114" href="/apple-touch-icon.png" />
+    <link rel="shortcut icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="icon.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="icon.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="icon.png" />
 
-    <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
-    <!-- build:css(.) <%=  appconf.CSS_DIR %>/vendor.css -->
+    <!-- 请替换/<%= appconf.SRC_DIR%>目录下的 `favicon.ico` 和 `apple-touch-icon.png` -->
+
+    <!-- build:css(.) <%=  appconf.CSS_DIR %>/libs-min.css -->
     <!-- bower:css --><% if ( appconf.bootstrap && ! appconf.sass) { %>
     <link rel="stylesheet" href="<%=  appconf.BOWER_DIR %>/bootstrap/dist/css/bootstrap.css"><% } %>
     <!-- endbower -->
     <!-- endbuild -->
-    <!-- build:css(.tmp) <%=  appconf.CSS_DIR %>/<%=  appconf.appname %>.css -->
+
+    <!-- build:css(.tmp) <%=  appconf.CSS_DIR %>/<%=  appconf.appname %>-min.css -->
     <link rel="stylesheet" href="<%=  appconf.CSS_DIR %>/<%=  appconf.appname %>.css">
     <!-- endbuild --><% if ( appconf.requirejs) { %>
 
-    <!-- build:js <%=  appconf.JS_DIR %>/r.main.js --><% if ( appconf.modernizr) { %>
-    <script src="<%=  appconf.BOWER_DIR %>/modernizr/modernizr.js"></script><% } %>
+    <!-- build:js(.) <%=  appconf.JS_DIR %>/libs-config-min.js --><% if ( appconf.modernizr) { %>
+    <script src="<%= appconf.BOWER_DIR %>/modernizr/modernizr.js"></script><% } %>
     <script src="<%= appconf.BOWER_DIR %>/requirejs/require.js"></script>
     <script src="<%= appconf.SCRIPTS_DIR %>/requirejs.config.js"></script>
     <!-- endbuild -->
@@ -43,7 +45,7 @@
           <li><a href="#"><span class="glyphicon glyphicon-bookmark"></span> 学习专题</a></li>
           <li><a href="#"><span class="glyphicon glyphicon-user"></span> 我的面授</a></li>
         </ul>
-        <h3 class="text-muted"><img src="apple-touch-icon.png" /> <%=  appconf.appname %></h3>
+        <h3 class="text-muted"><img src="apple-touch-icon.png" /> <%=  appconf.apptitle||appconf.appname %></h3>
       </div>
 
       <div class="jumbotron">
@@ -57,23 +59,41 @@
         <div class="col-lg-6">
 
           <h3><i class="fa fa-magic"></i> 特性</h3>
-          <ul>
-            <li><i class="fa fa-check"></i> 使用标准的`HTML5 Boilerplate`目录结构;</li><% if ( appconf.sass) { %>
-            <li><i class="fa fa-check"></i> 支持Scss/Sass预处理器;</li><% } %> <% if ( appconf.less) { %>
-            <li><i class="fa fa-check"></i> 支持Less预处理器;</li><% } %> <% if ( appconf.stylus) { %>
-            <li><i class="fa fa-check"></i> 支持Stylus预处理器;</li><% } %> <% if ( appconf.coffeescript) { %>
-            <li><i class="fa fa-check"></i> 支持CoffeeScript预处理器;</li><% } %> <% if ( appconf.typescript) { %>
-            <li><i class="fa fa-check"></i> 支持TypeScript预处理器;</li><% } %> <% if ( appconf.livescript) { %>
-            <li><i class="fa fa-check"></i> 支持LiveScript预处理器;</li><% } %>
+          <ul class="features">
+            <li><i class="fa fa-check-square"></i> 使用标准的`HTML5 Boilerplate`目录结构;</li>
+            <li><i class="fa fa-<%= appconf.sass?'check-':'' %>square"></i> 支持Scss/Sass预处理器;</li>
+            <li><i class="fa fa-<%= appconf.coffeescript?'check-':'' %>square"></i> 支持CoffeeScript预处理器;</li>
+            <li><i class="fa fa-<%= appconf.nodewebkit?'check-':'' %>square"></i> 支持使用<code>Node-webkit</code>构建基于HTML5+CSS3的跨平台<b>桌面应用</b>; </li>
+            <li><i class="fa fa-warning"></i> 稍后将会支持使用Apache `Cordova`构建基于HTML5+CSS3的跨终端<b>移动应用</b>; </li>
+            <li><i class="fa fa-warning"></i> 支持Less预处理器(未全面测试);</li>
+            <li><i class="fa fa-warning"></i> 支持Stylus预处理器(未全面测试);</li>
+            <li><i class="fa fa-warning"></i> 支持TypeScript预处理器(未全面测试);</li>
+            <li><i class="fa fa-warning"></i> 支持LiveScript预处理器(未全面测试);</li>
 
-            <% if (appconf.libs) {
-            for (var i =0,len=appconf.libs.length; i<len; i++) { %>
-              <li><i class="fa fa-check"></i> 已安装 <%= appconf.libs[i] %>; <%
-                if (appconf.libs[i] === 'angularjs' && appconf.ngcomponents) { %>
-                <ul> <%for (var k=0,leng=appconf.ngcomponents.length; k<leng; k++) { %>
-                  <li><i class="fa fa-check"></i> <%= appconf.ngcomponents[k] %>; </li><%}%>
-                </ul><%}%></li>
+            <%
+            var libs = [
+              'jquery', 'tui', 'bootstrap', 'async','angularjs','requirejs',
+              'modernizr','underscore','fontawesome','animatecss','mockjs'
+            ],
+            ulibs = appconf.libs || [];
+            function hasLibs(lib) {
+              for(var i=0,len=ulibs.length; i<len; i++) {
+                if (ulibs[i] === lib) {
+                  return true;
+                }
+              }
+            }
+
+            if (libs) {
+            for (var i =0,len=libs.length; i<len; i++) { %>
+            <li><i class="fa fa-<%= (hasLibs(libs[i])?"check-":"") %>square"></i> <%= libs[i] %>; <%
+              if (libs[i] === 'angularjs' && appconf.ngcomponents) { %>
+              <ul> <%for (var k=0,leng=appconf.ngcomponents.length; k<leng; k++) { %>
+                <li><i class="fa fa-check-square"></i> <%= appconf.ngcomponents[k] %>; </li><%}%>
+              </ul>
+            <%}%></li>
             <% }} %>
+
           </ul>
         </div>
         <div class="col-lg-6">
@@ -238,7 +258,7 @@
     </div>
     <% } %>
 
-    <!-- build:js(.) <%=  appconf.JS_DIR %>/vendor.js -->
+    <!-- build:js(.) <%=  appconf.JS_DIR %>/libs-min.js -->
     <!-- bower:js -->
     <!-- endbower -->
     <!-- endbuild -->

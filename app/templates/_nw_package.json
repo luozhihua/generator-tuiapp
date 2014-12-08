@@ -1,0 +1,39 @@
+{
+  "name"              : "<%= appconf.appname %>",
+  "main"              : "index.html",
+  "version"           : "0.0.1",
+  "nodejs"            : true,
+  "user-agent"        : "Mozilla/5.0 (%osinfo) %webkit_ver %name/%ver node-webmit/%nwver",
+  "single-instance"   : true,
+  "_node-webkit-help" : "https://github.com/rogerwang/node-webkit/wiki/Manifest-format",
+  "_inject-js-start"  : "",
+  "_inject-js-end"    : "",
+  "node-remote"       : "*21tb.com;*test*.net;localhost;[:::1];[192:168:*:*]",
+  "chromium-args"     : "--child-clean-exit --enable-transparent-visuals --disable-gpu",
+  "window" : {
+    "title"       : "<%= appconf.apptitle %>",
+    "icon"        : "icon.png",
+    "frame"       : true,
+    "width"       : 800,
+    "height"      : 480,
+    "toolbar"     : true,
+    "position"    : "mouse",
+    "min_width"   : 800,
+    "min_height"  : 480,
+    "_max_width"  : 800,
+    "_max_height" : 600,
+    "as_desktop"  : true,
+    "resizable"   : true
+  },
+  "dependencies": {
+    "rc": "^0.5.4"
+  },
+  "webkit": {
+    "plugin": true
+  },
+  "maintainers":[{
+     "name"  : "<%= author.username %>",
+     "email" : "<%= author.email %>",
+     "web"   : "<%= (author.blog || author.site || author.website) %>"
+  }]
+}

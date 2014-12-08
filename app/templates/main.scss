@@ -1,7 +1,7 @@
 // ==========================================================
 <% if (appconf.fa || appconf.fontawesome) { %>
-$fa-font-path: "/<%= appconf.BOWER_DIR%>/fontawesome/fonts"; <% } %> <% if ( appconf.bootstrap) { %>
-$icon-font-path: "/<%= appconf.BOWER_DIR%>/bootstrap-sass-official/assets/fonts/bootstrap/";
+$fa-font-path: "../<%= appconf.BOWER_DIR%>/fontawesome/fonts"; <% } %> <% if ( appconf.bootstrap) { %>
+$icon-font-path: "../<%= appconf.BOWER_DIR%>/bootstrap-sass-official/assets/fonts/bootstrap/";
 
 <% if (appconf.fontawesome) { %>
 @import "../../<%= appconf.BOWER_DIR %>/fontawesome/scss/font-awesome.scss"; <% } %>
@@ -104,6 +104,26 @@ body {
     min-height: 200px;
     overflow-y: auto;
     overflow-x: hidden;
+  }
+
+  .features, .features ul {
+    list-style: none;
+    padding-left: 0px;
+
+    $color: #2CE09D;
+    .fa-square{
+      color:lighten($color, 30%);
+    }
+    .fa-check-square {
+      color: $color;
+    }
+    .fa-warning {
+      color: #FFCC10;
+    }
+  }
+
+  .features ul {
+    padding-left: 2em !important;
   }
 }
 
