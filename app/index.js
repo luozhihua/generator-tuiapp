@@ -5,15 +5,14 @@ var rc     = require('rc');
 var fs     = require('fs-extra');
 var path   = require('path');
 var join   = require('path').join;
-var util   = require('util');
-var yeoman = require('yeoman-generator');
 var childp = require('child_process');
 var chalk  = require('chalk');
 var findup = require('findup-sync');
 var _      = require('lodash');
 var _s     = require('underscore.string');
+var gitlab;
 
-var osinfo          = {
+var osinfo = {
   user: process.env.USER || process.env.USERNAME,
   platform: os.platform(),
   type: os.type(),
@@ -21,12 +20,9 @@ var osinfo          = {
 };
 
 var warningExists;
-//var bowerrc         = fs.readJsonSync(path.resolve(__dirname, './templates/bowerrc'));
 var appconfFile     = path.join(process.cwd(), '.appconf');
 var appconfTemplate = path.resolve(__dirname, './templates/_appconf');
 var warningNotEmpty = fs.readdirSync(process.cwd()).length;
-//var tuircPath       = findup('.tuirc');
-//var tuirc           = tuircPath ? fs.readJsonSync(tuircPath) : {user:{}};
 var tuirc           = rc('tui', {
     'user': {
         'username': osinfo.user,
@@ -39,8 +35,7 @@ var tuirc           = rc('tui', {
 });
 
 var now = new Date();
-var timestamp = now.toLocaleDateString() +' '+ now.toLocaleTimeString();
-var gitlab;
+var timestamp = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
 
 // 尝试读取配置文件
 var appconf;
@@ -52,26 +47,25 @@ if (fs.existsSync(appconfFile)) {
 }
 
 // 系统信息
-appconf.createTime = timestamp;
+appconf.createTime     = timestamp;
 
 // 路径配置
-appconf.BOWER_DIR     = appconf.BOWER_DIR; // bower_rc.directory;
+appconf.BOWER_DIR      = appconf.BOWER_DIR; // bower_rc.directory;
 
-appconf.JS_SRC_DIR    = appconf.SRC_DIR + '/' + appconf.SCRIPTS_DIR;
-appconf.CSS_SRC_DIR   = appconf.SRC_DIR + '/' + appconf.STYLES_DIR;
+appconf.JS_SRC_DIR     = appconf.SRC_DIR + '/' + appconf.SCRIPTS_DIR;
+appconf.CSS_SRC_DIR    = appconf.SRC_DIR + '/' + appconf.STYLES_DIR;
 
-appconf.IMG_SRC_DIR   = appconf.SRC_DIR + '/' + appconf.IMG_DIR;
-appconf.HTML_SRC_DIR  = appconf.SRC_DIR + '/' + appconf.HTML_DIR;
-appconf.TEMPL_SRC_DIR = appconf.SRC_DIR + '/' + appconf.TEMPL_DIR;
-appconf.DATA_SRC_DIR  = appconf.SRC_DIR + '/' + appconf.DATA_DIR;
+appconf.IMG_SRC_DIR    = appconf.SRC_DIR + '/' + appconf.IMG_DIR;
+appconf.HTML_SRC_DIR   = appconf.SRC_DIR + '/' + appconf.HTML_DIR;
+appconf.TEMPL_SRC_DIR  = appconf.SRC_DIR + '/' + appconf.TEMPL_DIR;
+appconf.DATA_SRC_DIR   = appconf.SRC_DIR + '/' + appconf.DATA_DIR;
 
-appconf.JS_DIST_DIR   = appconf.DIST_DIR + '/' + appconf.JS_DIR;
-appconf.CSS_DIST_DIR  = appconf.DIST_DIR + '/' + appconf.CSS_DIR;
-appconf.IMG_DIST_DIR  = appconf.DIST_DIR + '/' + appconf.IMG_DIR;
-appconf.HTML_DIST_DIR = appconf.DIST_DIR + '/' + appconf.HTML_DIR;
+appconf.JS_DIST_DIR    = appconf.DIST_DIR + '/' + appconf.JS_DIR;
+appconf.CSS_DIST_DIR   = appconf.DIST_DIR + '/' + appconf.CSS_DIR;
+appconf.IMG_DIST_DIR   = appconf.DIST_DIR + '/' + appconf.IMG_DIR;
+appconf.HTML_DIST_DIR  = appconf.DIST_DIR + '/' + appconf.HTML_DIR;
 appconf.TEMPL_DIST_DIR = appconf.DIST_DIR + '/' + appconf.TEMPL_DIR;
-appconf.DATA_DIST_DIR = appconf.DIST_DIR + '/' + appconf.DATA_DIR;
-
+appconf.DATA_DIST_DIR  = appconf.DIST_DIR + '/' + appconf.DATA_DIR;
 
 function tuiSayHello() {
     return '\n' +
@@ -92,14 +86,12 @@ function warning(text) {
       return text;
     }
 
-    var num = 19;
+    var num   = 19;
     var texts = _s.chop(text, num);
-    var xxx = texts.map(function(a) {
-      return a.split('\n');
-    });
-    xxx = _.flatten(xxx);
+    var msg   = texts.map(function(a) { return a.split('\n'); });
 
-    xxx = xxx.map(function(a) {
+    msg = _.flatten(msg);
+    msg = msg.map(function(a) {
       var str;
       var enchars = a.match(/[^，。？《》【】、～（）￥×！：“‘\u4e00-\u9fa5]/g);
       var ennum = enchars ? enchars.length : 0;
@@ -119,28 +111,41 @@ function warning(text) {
       '  ║                警    告                  ║\n'+
       '  ║  --------------------------------------  ║\n'+
       '  ║                                          ║\n'+
-      '  ║  ' + xxx.join('  ║\n  ║  ') +      '  ║\n'+
+      '  ║  ' + msg.join('  ║\n  ║  ') +      '  ║\n'+
       '  ║                                          ║\n'+
       '  ║                              Colin @ TUI ║\n'+
       '  ╚══════════════════════════════════════════╝\n'
     );
 }
 
+
+// 如果是重新生成，则向用户发出警告；
+if (warningNotEmpty) {
+  if (warningExists) {
+    console.log(chalk.red(warning('此目录已存在1个应用: '+ appconf.appname.toUpperCase() +'\n \n若您继续操作会覆盖原来的部分文件，有可能会导致您自己编写的代码丢失，一旦重新生成将不能再回滚，请务必谨慎！')));
+
+    console.log(chalk.green('\n    正在加载生成器，请耐心等待...\n'));
+
+  } else {
+    console.log(chalk.red(warning('检测到当前目录不为空，请您在新建的目录（或空目录）下运行本程序。\n \n程序已自动终止...')));
+    process.exit();
+  }
+} else {
+  console.log(chalk.green('\n    正在加载生成器，请耐心等待...\n'));
+}
+
+var startTime = +new Date();
+var yeoman = require('yeoman-generator');
+var completeTime = +new Date();
+console.log(completeTime - startTime);
+
 module.exports = yeoman.generators.Base.extend({
 
   constructor: function () {
     yeoman.generators.Base.apply(this, arguments);
 
-    // 如果是重新生成，则向用户发出警告；
-    if (warningNotEmpty) {
-      if (warningExists) {
-        this.log(chalk.red(warning('此目录已存在1个应用——'+ appconf.appname.toUpperCase() +'\n \n若您继续操作会覆盖原来的部分文件，有可能会导致您自己编写的代码丢失，一旦重新生成将不能再回滚，请务必谨慎！')));
-      } else {
-        this.log(chalk.red(warning('检测到当前目录不为空，请您在新建的目录（或空目录）下运行本程序。\n \n程序已自动终止...')));
-        process.exit();
-      }
-    } else if (!this.options['skip-welcome-message']) {
-      // 欢迎消息
+    // 欢迎消息
+    if (!this.options['skip-welcome-message']) {
       this.log(chalk.cyan(tuiSayHello()));
       this.log(chalk.magenta(
         '即将为您创建一个开箱即用的, 集成了常用框架、类库、组件以及单元测试框架的App.\n\n'
@@ -155,6 +160,7 @@ module.exports = yeoman.generators.Base.extend({
     this.appconf  = appconf;
     this.author   = tuirc.user;
     this.pkg      = require('../package.json');
+
 
     /**
      * @param {String} appname 应用名称(开发项目名称)
@@ -463,6 +469,7 @@ module.exports = yeoman.generators.Base.extend({
     });
     appconf.modernizr = this.options.modernizr;
     if (appconf.modernizr) {this._saveLibs('modernizr');}
+
   },
 
   // 保存用户指定的前端类库和框架到一个列表
@@ -504,15 +511,16 @@ module.exports = yeoman.generators.Base.extend({
       return;
     }
 
-    var continueText = '忽略警告';
+    var continueText = '知道了';
     var continueCount = 3;
     var prompts = [{
       when: function() { return warningExists; },
       name: 'warning',
       type: 'string',
-      message: '有未处理的警告信息，请输入“'+ continueText +'”继续: ',
+      message: '有未处理的警告信息，若您已经仔细阅读警告信息，请输入“'+ chalk.red(continueText) +'”继续: ',
       default: '输错'+ continueCount +'次将会自动退出', // 'newapp'
       validate: function(answer) {
+
         if (answer === continueText) {
           return true;
         } else {
@@ -725,10 +733,6 @@ module.exports = yeoman.generators.Base.extend({
       appconf.webapp       = !appconf.nodewebkit;
       appconf.karma        = answers.karma;
 
-      this.log('2222222222222222222222222');
-      this.log(answers.karma);
-      this.log('vvvvvvvvvvvvvvvvvvvvvvvvvv');
-
       appconf.libs         = libs;
       appconf.ngcomponents = ngcomponents;
 
@@ -768,12 +772,12 @@ module.exports = yeoman.generators.Base.extend({
       appconf.libsass   = !!answers.libsass;
       appconf.rubysass  = !answers.libsass;
 
-      // 将配置项应用到生成器上下文
-      for (var k in appconf) {
-        if (k.match(/^include/)) {
-          this[k] = appconf[k];
-        }
-      }
+      // // 将配置项应用到生成器上下文
+      // for (var k in appconf) {
+      //   if (k.match(/^include/)) {
+      //     this[k] = appconf[k];
+      //   }
+      // }
 
       done();
     }.bind(this));
@@ -903,11 +907,11 @@ module.exports = yeoman.generators.Base.extend({
     var jsPath = appconf.javascript ? appconf.SCRIPTS_DIR : appconf.JS_DIR;
     var list = [jsPath + '/'+ appconf.appname +'.js'];
     this.indexFile = this.appendFiles({
-      html: this.indexFile,
-      fileType: 'js',//+ (appconf.coffeescript?':coffee':''),
-      optimizedPath: appconf.JS_DIR + '/'+ appconf.appname +'-min.js',
-      sourceFileList: list,
-      searchPath: ['.', appconf.javascript ? appconf.SRC_DIR : appconf.TMP_DIR]
+      html           : this.indexFile,
+      fileType       : 'js',//+ (appconf.coffeescript?':coffee':''),
+      optimizedPath  : appconf.JS_DIR + '/'+ appconf.appname +'-min.js',
+      sourceFileList : list,
+      searchPath     : ['.', appconf.javascript ? appconf.SRC_DIR : appconf.TMP_DIR]
     });
   },
 
@@ -925,7 +929,7 @@ module.exports = yeoman.generators.Base.extend({
     this.mkdir(appconf.IMG_SRC_DIR);  // ./app/img
     this.mkdir(appconf.HTML_SRC_DIR); // ./app/html
     this.mkdir(appconf.TEMPL_SRC_DIR); // ./app/views
-    this.mkdir(appconf.DATA_SRC_DIR); // ./app/data
+    this.mkdir(appconf.DATA_SRC_DIR);  // ./app/data
     this.write(appconf.SRC_DIR + '/index.html', this.indexFile);
 
     //fs.symlinkSync('../node_modules_share', 'node_modules', 'dir');
@@ -950,6 +954,8 @@ module.exports = yeoman.generators.Base.extend({
     // 复制Karma集成测试框架的配置文件
     if (appconf.karma) {
       this.template('karma.conf.js', appconf.TEST_DIR + '/karma.conf.js');
+      this.template('test.conf.js', appconf.TEST_DIR + '/test.conf.js');
+      this.template('test.setup.js', appconf.TEST_DIR + '/test.setup.js');
     }
 
     this.template('_README.md', 'README.md');
@@ -990,19 +996,19 @@ module.exports = yeoman.generators.Base.extend({
 
         // 使用NPM安装依赖的开发工具包
         this.installDependencies({
-          bower: false,
-          npm: true,
+//          bower: true,
+//          npm: true,
           skipMessage: this.options['skip-install-message'],
           skipInstall: this.options['skip-install']
         });
 
         // 使用Bower安装项目所依赖的组件和第三方框架、类库依赖包
-        this.installDependencies({
-          bower: true,
-          npm: false,
-          skipMessage: this.options['skip-install-message'],
-          skipInstall: this.options['skip-install']
-        });
+        // this.installDependencies({
+        //   bower: true,
+        //   npm: false,
+        //   skipMessage: this.options['skip-install-message'],
+        //   skipInstall: this.options['skip-install']
+        // });
       }
 
     });
@@ -1016,11 +1022,10 @@ module.exports = yeoman.generators.Base.extend({
    */
   useSharedFolder: function(tuiroot, folder, srcPaths) {
 
-    this.log('sharing');
     if (tuiroot && folder && !fs.existsSync(folder)) {
       var relativePath = path.relative(path.dirname(tuiroot), '.');
-      var deep = relativePath.split(path.sep).length;
-      var parentPath = _s.repeat('../', deep);
+      var deep         = relativePath.split(path.sep).length;
+      var parentPath   = _s.repeat('../', deep);
       var srcFolder;
 
       this.log(deep+', '+parentPath);

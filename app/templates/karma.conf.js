@@ -14,10 +14,13 @@ module.exports = function(config) {
     basePath: '.',
 
     // testing framework to use (jasmine/mocha/qunit/...)
-    frameworks: ['<%= appconf.testframework||"mocha" %>'],
+    frameworks: ['<%= appconf.testframework || "mocha" %>'],
 
     // list of files / patterns to load in the browser
     files: [
+      'bower_components/mocha/mocha.js',
+      'bower_components/chai/chai.js',
+      'test.conf.js',
       //bower:js
 
       //endbower
@@ -50,7 +53,7 @@ module.exports = function(config) {
 
     junitReporter: {
       // will be resolved to basePath (in the same way as files/exclude patterns)
-      outputFile: '<%= appconf.test %>/junit-report/test-results.xml'
+      outputFile: './junit-report/test-results.xml'
     },
 
     preprocessors: {
@@ -67,12 +70,8 @@ module.exports = function(config) {
     coverageReporter: {
       // cf. http://gotwarlost.github.com/istanbul/public/apidocs/
       type: 'lcov',
-      dir: '<%= appconf.test %>/coverage/'
+      dir: './coverage/'
     },
-
-    // web server port
-    port: 9876,
-
 
     // cli runner port
     runnerPort: 9100,
@@ -84,11 +83,7 @@ module.exports = function(config) {
 
     // level of logging
     // possible values: LOG_DISABLE || LOG_ERROR || LOG_WARN || LOG_INFO || LOG_DEBUG
-    logLevel: karma.LOG_DEBUG,
-
-
-    // enable / disable watching file and executing tests whenever any file changes
-    autoWatch: true,
+    logLevel: 'LOG_DEBUG',
 
     // Which plugins to enable
     plugins: ['karma-*'],
@@ -96,8 +91,6 @@ module.exports = function(config) {
     // Continuous Integration mode
     // if true, it capture browsers, run tests and exit
     singleRun: false,
-
-    colors: true,
 
     // Uncomment the following lines if you are using grunt's server to run the tests
     // proxies: {

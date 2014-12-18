@@ -52,7 +52,7 @@
 
             this.sayHi(hiMsg);
             this.jumbotronTitleAnimation().jumbotronDescriptionAnimation();
-
+            return this;
         },
 
         camel: function(uncamel, big) {
@@ -150,6 +150,6 @@
         }
     };
 
-    new <%= appconf.appname%>().init();
+    global.app = new <%= appconf.appname%>().init();
 
 }(this));

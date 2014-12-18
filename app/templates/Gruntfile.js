@@ -312,27 +312,42 @@ module.exports = function (grunt) {
       chrome: {
         autoWatch: true,
         singleRun: false,
-        browsers: ['chrome']
+        browsers: ['Chrome']
+      },
+      firefox: {
+        autoWatch: true,
+        singleRun: false,
+        browsers: ['Firefox']
+      },
+      opera: {
+        autoWatch: true,
+        singleRun: false,
+        browsers: ['Opera']
+      },
+      safari: {
+        autoWatch: true,
+        singleRun: false,
+        browsers: ['Safari']
       },
       ie7: {
         autoWatch: true,
         singleRun: false,
-        browsers: ['ie7']
+        browsers: ['IE7']
       },
       ie8: {
         autoWatch: true,
         singleRun: false,
-        browsers: ['ie8']
+        browsers: ['IE8']
       },
       ie9: {
         autoWatch: true,
         singleRun: false,
-        browsers: ['ie9']
+        browsers: ['IE9']
       },
       ie10: {
         autoWatch: true,
         singleRun: false,
-        browsers: ['ie10']
+        browsers: ['IE10']
       },
       continuous: {
         singleRun: true,
@@ -935,7 +950,20 @@ module.exports = function (grunt) {
           config: 'yufa'
         }
       }
-    },
+    }, <% if (appconf.mockjs) { %>
+
+    "mockjs_detach": {
+      options: {
+        begin: '<!-- mockjs -->', // default to: <!-- mockjs -->
+        end: '<!-- endmockjs -->' // default to: <!-- endmockjs -->
+      },
+      app: {
+        expand: true,
+        cwd: '<%%= config.dist %>',
+        src: '{,*/}*.html',
+        dest: '<%%= config.dist %>'
+      },
+    },<% } %>
 
     // 对任务构建的状态或结果显示桌面提示
     'notify_hooks': {
@@ -1082,7 +1110,8 @@ module.exports = function (grunt) {
     'replace',<% if (appconf.modernizr___) { %>
     'modernizr',<% } %>
     //'rev',
-    'usemin',
+    'usemin', <% if (appconf.mockjs) { %>
+    'mockjs_detach', <% } %>
     'htmlmin',
     'replace'
   ]);
