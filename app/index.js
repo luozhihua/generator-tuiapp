@@ -772,13 +772,6 @@ module.exports = yeoman.generators.Base.extend({
       appconf.libsass   = !!answers.libsass;
       appconf.rubysass  = !answers.libsass;
 
-      // // 将配置项应用到生成器上下文
-      // for (var k in appconf) {
-      //   if (k.match(/^include/)) {
-      //     this[k] = appconf[k];
-      //   }
-      // }
-
       done();
     }.bind(this));
   },
@@ -836,7 +829,7 @@ module.exports = yeoman.generators.Base.extend({
     bower.dependencies['angular-scenario'] = appconf['angular-scenario'] ? '1.3.3' : undef;
     bower.dependencies['angular-aria']     = appconf['angular-aria']     ? '1.3.3' : undef;
 
-    bower.dependencies.textillate = 'git@github.com:luozhihua/textillate.git#~0.3.3';
+    bower.dependencies.textillate = 'https://github.com/luozhihua/textillate.git#~0.3.3';
 
     // animate.css
     if (appconf.animatecss) {
@@ -851,7 +844,7 @@ module.exports = yeoman.generators.Base.extend({
 
     // MockJs
     if (appconf.mockjs) {
-      bower.devDependencies.mockjs = '~0.1.5';
+      bower.devDependencies.mockjs = 'https://github.com/luozhihua/Mock.git#~0.1.6';
     }
 
     this.template('bowerrc', '.bowerrc');
