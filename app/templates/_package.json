@@ -10,6 +10,7 @@
     "url": "https://gitlab.21tb.com/tui/<%= _.slugify(appname) %>.git"
   },
   "devDependencies": {
+    "grunt-debug-task"          : ">=0.1.5",
     "apache-server-configs"     : "^2.7.1",
     "grunt"                     : "^0.4.5",
     "grunt-autoprefixer"        : "^1.0.0",

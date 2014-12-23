@@ -19,22 +19,35 @@
 var findup = require('findup-sync');
 var fs     = require('fs-extra');
 var os     = require('os');
-//var path   = require('path');
+var path   = require('path');
 
 /**
- * 让预览服务器支持REST接口的 POST / PUT / DELETE 方法
- * @param  {Object}   req  HTTP request Object.
- * @param  {Object}   res  HTTP responce object.
- * @param  {Function} next
- * @return {Object}        Express 中间件
+ * 启用REST接口支持
+ * @param  {String} dir
+ * @param  {Object} options [description]
+ * @return {[type]}         [description]
  */
-function enableRest(req, res, next) {
-  res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
-  res.setHeader('Access-Control-Allow-Headers', req.headers['access-control-request-headers']);
+var restSupported = ['POST', 'PUT', 'DELETE'];
+function enableRest(dir, options) {
 
-  return next();
+  /**
+   * 让预览服务器支持REST接口的 POST / PUT / DELETE 方法
+   * @param  {Object}   req  HTTP request Object.
+   * @param  {Object}   res  HTTP responce object.
+   * @param  {Function} next
+   * @return {Object}        Express 中间件
+   */
+  return function(req, res, next) {
+    if (restSupported.indexOf(req.method.toUpperCase()) !== -1) {
+
+      var filepath = path.join(options.base[0], dir, req.url.split('?')[0]);
+
+      if (fs.existsSync(filepath) && fs.statSync(filepath).isFile()) {
+        res.end(fs.readFileSync(filepath));
+      }
+    }
+    return next();
+  };
 }
 
 function readDeployConf() {
@@ -119,6 +132,13 @@ module.exports = function (grunt) {
     author: tuirc.user || {},
     pkg: pkg,
 
+    // 任务调试器
+    debug: {
+      options: {
+        open: true
+      }
+    },
+
     // 监视项目内的文件，若有更改则自动执行编译或刷新浏览器
     watch: {
       bower: {
@@ -179,14 +199,16 @@ module.exports = function (grunt) {
         // 也可以在运行yo命令时指定选项：yo generator --allow-remote
         hostname: 'localhost',
         middleware: function(connect, options, middlewares) {
-          middlewares.unshift(enableRest);
+          return [
+            enableRest(config.src, options);
+          ]
         }
       },
       livereload: {
         options: {
           middleware: function(connect, options, middlewares) {
-            middlewares.unshift(enableRest);
             return [
+              enableRest(config.src, options);
               connect.static(config.tmp),
               connect.static(config.tmp+'/concat'),
               connect().use('/'+ config.bower, connect.static('./'+ config.bower)),
@@ -200,8 +222,8 @@ module.exports = function (grunt) {
           open: false,
           port: 9001,
           middleware: function(connect, options, middlewares) {
-            middlewares.unshift(enableRest);
             return [
+              enableRest(config.src, options);
               connect.static(config.tmp),
               connect.static(config.test),
               connect().use('/'+ config.bower, connect.static('./'+ config.bower)),
@@ -215,8 +237,8 @@ module.exports = function (grunt) {
           //base: '<%%= config.dist %>',
           livereload: false,
           middleware: function(connect, options, middlewares) {
-            middlewares.unshift(enableRest);
             return [
+              enableRest(config.src, options);
               connect.static(config.dist)
             ];
           }

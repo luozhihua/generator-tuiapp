@@ -813,7 +813,7 @@ module.exports = yeoman.generators.Base.extend({
     bower.dependencies.requirejs   = appconf.requirejs   ? '>=2.1.0' : undef;
     bower.dependencies.angularjs   = appconf.angular     ? '>=1.3.3' : undef;
     bower.dependencies.underscore  = appconf.underscore  ? '*'       : undef;
-    bower.dependencies.async       = appconf.async       ? '*'       : undef;
+    bower.dependencies.async       = appconf.async       ? '>=0.9.2' : undef;
     bower.dependencies.fontawesome = appconf.fontawesome ? '~4.2.0'  : undef;
 
     bower.dependencies['angular-route']    = appconf['angular-route']    ? '1.3.3' : undef;

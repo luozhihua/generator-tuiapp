@@ -35,7 +35,7 @@
     "gitlab": "^1.1.0",
     "lodash": "^2.4.1",
     "underscore.string": "^2.3.2",
-    "yeoman-generator": "^0.18.3",
+    "yeoman-generator": "~0.17.0",
     "yosay": "~1.0.0",
     "rc": "~0.5.4"
   },
