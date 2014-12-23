@@ -362,7 +362,7 @@ module.exports = yeoman.generators.Base.extend({
     this.option('bootstrap', {
       desc: '使用 Bootstrap',
       type: Boolean,
-      defaults: appconf.bootstrap || false
+      defaults: appconf.bootstrap || true
     });
     appconf.bootstrap = this.options.bootstrap;
     if (appconf.bootstrap) {this._saveLibs('bootstrap');}
@@ -422,7 +422,7 @@ module.exports = yeoman.generators.Base.extend({
     this.option('underscore', {
       desc: '使用 underscore',
       type: Boolean,
-      defaults: appconf.underscore || false
+      defaults: appconf.underscore || true
     });
     appconf.underscore = this.options.underscore;
     if (appconf.underscore) {this._saveLibs('underscore');}
@@ -440,7 +440,7 @@ module.exports = yeoman.generators.Base.extend({
     this.option('animatecss', {
       desc: '使用 animatecss',
       type: Boolean,
-      defaults: appconf.animatecss || false
+      defaults: appconf.animatecss || true
     });
     appconf.animatecss = this.options.animatecss;
     if (appconf.animatecss) {this._saveLibs('animatecss');}
@@ -449,7 +449,7 @@ module.exports = yeoman.generators.Base.extend({
     this.option('fontawesome', {
       desc: '使用 fontawesome',
       type: Boolean,
-      defaults: appconf.fontawesome || false
+      defaults: appconf.fontawesome || true
     });
     // fa
     this.option('fa', {
@@ -465,7 +465,7 @@ module.exports = yeoman.generators.Base.extend({
     this.option('modernizr', {
       desc: '使用 modernizr',
       type: Boolean,
-      defaults: appconf.modernizr || false
+      defaults: appconf.modernizr || true
     });
     appconf.modernizr = this.options.modernizr;
     if (appconf.modernizr) {this._saveLibs('modernizr');}
