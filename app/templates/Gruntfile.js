@@ -200,7 +200,7 @@ module.exports = function (grunt) {
         hostname: 'localhost',
         middleware: function(connect, options, middlewares) {
           return [
-            enableRest(config.src, options);
+            enableRest(config.src, options)
           ]
         }
       },
@@ -208,7 +208,7 @@ module.exports = function (grunt) {
         options: {
           middleware: function(connect, options, middlewares) {
             return [
-              enableRest(config.src, options);
+              enableRest(config.src, options),
               connect.static(config.tmp),
               connect.static(config.tmp+'/concat'),
               connect().use('/'+ config.bower, connect.static('./'+ config.bower)),
@@ -223,7 +223,7 @@ module.exports = function (grunt) {
           port: 9001,
           middleware: function(connect, options, middlewares) {
             return [
-              enableRest(config.src, options);
+              enableRest(config.src, options),
               connect.static(config.tmp),
               connect.static(config.test),
               connect().use('/'+ config.bower, connect.static('./'+ config.bower)),
@@ -238,7 +238,7 @@ module.exports = function (grunt) {
           livereload: false,
           middleware: function(connect, options, middlewares) {
             return [
-              enableRest(config.src, options);
+              enableRest(config.src, options),
               connect.static(config.dist)
             ];
           }
