@@ -4,7 +4,7 @@
   "author": "<%= author.username || author.name || '-' %>",
   "description" : "<%= appconf.description || appconf.apptitle || appconf.appname %>",
   "createTime" : "<%= appconf.createTime %>",
-  "nwDependencies": "0.11.2",
+  "nwDependencies": "0.11.3",
   "repository": {
     "type": "git",
     "url": "https://gitlab.21tb.com/tui/<%= _.slugify(appname) %>.git"

@@ -3,7 +3,7 @@
   "main"              : "index.html",
   "version"           : "0.0.1",
   "nodejs"            : true,
-  "user-agent"        : "Mozilla/5.0 (%osinfo) %webkit_ver %name/%ver node-webmit/%nwver",
+  "user-agent"        : "Mozilla/5.0 (%osinfo) %webkit_ver TBC-ELN %name/%ver node-webkit/%nwver like(Chrome & Webkit)",
   "single-instance"   : true,
   "_node-webkit-help" : "https://github.com/rogerwang/node-webkit/wiki/Manifest-format",
   "_inject-js-start"  : "",
