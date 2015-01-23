@@ -709,7 +709,7 @@ module.exports = function (grunt) {
             '<%%= config.img %>/**/*',
             'package.json',
             '<%%= config.templ %>/{,*/}*.*',<% if (appconf.nodewebkit) { %>
-            'node_modules/**/*.*',<% } %>
+            'node_modules/**/*.*', <% } %>
             //'<%%= config.html %>/{,*/}*.html',
             '{,*/}*.html',
             '<%%= config.css %>/fonts/{,*/}*.*'
