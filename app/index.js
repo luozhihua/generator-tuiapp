@@ -388,7 +388,9 @@ module.exports = yeoman.generators.Base.extend({
       'angular-sanitize',
       'angular-resource',
       'angular-scenario',
-      'angular-aria'
+      'angular-aria',
+      'angular-material',
+      'angular-material-icons'
     ];
     ngmodules.forEach(function(ngm) {
       this.option(ngm, {
@@ -691,7 +693,9 @@ module.exports = yeoman.generators.Base.extend({
         {name: 'angular-sanitize', value: 'angular-sanitize', checked: this.options['angular-sanitize']},
         {name: 'angular-resource', value: 'angular-resource', checked: this.options['angular-resource']},
         {name: 'angular-scenario', value: 'angular-scenario', checked: this.options['angular-scenario']},
-        {name: 'angular-aria',     value: 'angular-aria',     checked: this.options['angular-aria']}
+        {name: 'angular-aria',     value: 'angular-aria',     checked: this.options['angular-aria']},
+        {name: 'angular-material', value: 'angular-material', checked: this.options['angular-material']},
+        {name: 'angular-material-icons', value: 'angular-material-icons', checked: this.options['angular-material-icons']}
       ]
     }, {
       when: function (answers) {
@@ -828,6 +832,8 @@ module.exports = yeoman.generators.Base.extend({
     bower.dependencies['angular-resource'] = appconf['angular-resource'] ? '1.3.3' : undef;
     bower.dependencies['angular-scenario'] = appconf['angular-scenario'] ? '1.3.3' : undef;
     bower.dependencies['angular-aria']     = appconf['angular-aria']     ? '1.3.3' : undef;
+    bower.dependencies['angular-material'] = appconf['angular-material'] ? '0.7.0' : undef;
+    bower.dependencies['angular-material-icons'] = appconf['angular-material-icons'] ? '0.2.0' : undef;
 
     bower.dependencies.textillate = 'https://github.com/luozhihua/textillate.git#~0.3.3';
 
