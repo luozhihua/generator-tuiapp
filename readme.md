@@ -1,4 +1,4 @@
-# 时代光华 TUI Web App 生成器
+# TUI Web App 生成器
 
 一个基于 [Yeoman](http://yeoman.io) 的前端应用自动生成器，用来快速初始化一个集成了Grunt构建工具和Bower包管理工具的现代Web应用。
 
