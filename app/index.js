@@ -74,7 +74,7 @@ function tuiSayHello() {
       '           ██        ██        ██      ██\n'+
       '           ██        ████████████      ██\n'+
       '       ══════════════════════════════════\n'+
-      '       时 代 光 华 ELN 4.0 应 用 生 成 器\n'+
+      '       Web 前 端 应 用 自 动 生 成 器\n'+
       '       ══════════════════════════════════\n'+
       '       @author: Colin<mail@luozhihua.com>\n'
       ;
@@ -541,7 +541,7 @@ module.exports = yeoman.generators.Base.extend({
       message: '请输入新应用名称 \n(仅支持字母和数字，首字符不能为数字, 如：els、os...): ',
       default: appconf.appname || this.appname, // 'newapp'
       validate: function(answer) {
-        return answer.match(/[\-_ \W]/g) ? false : true;
+        return answer.match(/[ %\$\*&\^\!\@\#\(\)\{\}"'\<\>\?\/\,\+\`\~\=]/g) ? false : true;
       },
       required: true
     }, {
@@ -818,7 +818,7 @@ module.exports = yeoman.generators.Base.extend({
     bower.dependencies.angularjs   = appconf.angular     ? '>=1.3.3' : undef;
     bower.dependencies.underscore  = appconf.underscore  ? '*'       : undef;
     bower.dependencies.async       = appconf.async       ? '>=0.9.2' : undef;
-    bower.dependencies.fontawesome = appconf.fontawesome ? '~4.2.0'  : undef;
+    bower.dependencies.fontawesome = appconf.fontawesome ? '>=4.2.0'  : undef;
 
     bower.dependencies['angular-route']    = appconf['angular-route']    ? '1.3.3' : undef;
     bower.dependencies['angular-loader']   = appconf['angular-loader']   ? '1.3.3' : undef;
